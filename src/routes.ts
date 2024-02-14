@@ -1,10 +1,16 @@
-import {Router} from 'express';
-import {Register, Login, AuthenticatedUser, Refresh, Logout} from './controller/auth.controller';
+import { Router } from 'express';
+import {
+    registerUser,
+    loginUser,
+    getAuthenticatedUser,
+    refreshAuthToken,
+    logoutUser
+} from './controller/auth.controller';
 
 export const routes = (router: Router) => {
-    router.post('/api/register', Register);
-    router.post('/api/login', Login);
-    router.get('/api/user', AuthenticatedUser);
-    router.post('/api/refresh', Refresh);
-    router.post('/api/logout', Logout);
-}
+    router.post('/api/register', registerUser);
+    router.post('/api/login', loginUser);
+    router.get('/api/user', getAuthenticatedUser);
+    router.post('/api/refresh', refreshAuthToken);
+    router.post('/api/logout', logoutUser);
+};
