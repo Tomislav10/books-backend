@@ -1,0 +1,13 @@
+{
+  "type": "mysql",
+  "host": "localhost",
+  "port": 3306,
+  "username": "root",
+  "password": "12345678",
+  "database": "ice_and_fire_database",
+  "synchronize": true,
+  "logging": false,
+  "entities": [
+    "src/entity/**/*.ts"
+  ]
+}

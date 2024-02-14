@@ -1,4 +1,9 @@
 import express, {Request, Response} from 'express';
+import {createConnection} from 'typeorm';
+
+createConnection().then(() => {
+    console.log('Conected !!!!')
+})
 
 const app = express();
 app.use(express.json());
