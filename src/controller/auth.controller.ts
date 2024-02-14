@@ -17,7 +17,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
         if (!first_name || !last_name || !email || !req.body.password || req.body.password !== password_confirm) {
             return res.status(400).send({
-                message: 'Invalid or missing data in the request body',
+                message: 'Invalid or missing data in the request body!',
             });
         }
 
@@ -30,18 +30,25 @@ export const registerUser = async (req: Request, res: Response) => {
 
         res.status(201).send(data);
     } catch (error) {
-        console.error(error);
         res.status(500).send({
-            message: 'Internal Server Error',
+            message: (error as Error).message,
         });
     }
 };
 
 export const loginUser = async (req: Request, res: Response) => {
     try {
+        const { password, email } = req.body;
+
+        if (!password || !email) {
+            return res.status(400).send({
+                message: 'Invalid or missing data in the request body!',
+            });
+        }
+
         const user = await getRepository(UserEntity).findOne({
             where: {
-                email: req.body.email,
+                email: email,
             },
         });
 
@@ -51,7 +58,7 @@ export const loginUser = async (req: Request, res: Response) => {
             });
         }
 
-        if (!(await bcryptjs.compare(req.body.password, user.password))) {
+        if (!(await bcryptjs.compare(password, user.password))) {
             return res.status(400).send({
                 message: 'Invalid credentials!',
             });
@@ -81,7 +88,7 @@ export const loginUser = async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(500).send({
-            message: 'Internal Server Error',
+            message: 'Internal Server Error!',
         });
     }
 };
@@ -89,13 +96,13 @@ export const loginUser = async (req: Request, res: Response) => {
 
 export const getAuthenticatedUser = async (req: Request, res: Response) => {
     try {
-        const accessToken = (req.header('Authorization') as string)?.split(' ')[1] || '';
+        const accessToken = req.header('Authorization') as string;
 
         const payload = verify(accessToken, process.env.ACCESS_SECRET || '') as JwtPayload;
 
         if (!payload) {
             return res.status(401).send({
-                message: 'Unauthenticated request',
+                message: 'Unauthenticated request!',
             });
         }
 
@@ -107,7 +114,7 @@ export const getAuthenticatedUser = async (req: Request, res: Response) => {
 
         if (!user) {
             return res.status(401).send({
-                message: 'Unauthenticated request',
+                message: 'Unauthenticated request!',
             });
         }
 
@@ -117,7 +124,7 @@ export const getAuthenticatedUser = async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(401).send({
-            message: 'Unauthenticated request!',
+            message: (error as Error).message,
         });
     }
 };
@@ -130,7 +137,7 @@ export const refreshAuthToken = async (req: Request, res: Response) => {
 
         if (!payload) {
             return res.status(401).send({
-                message: 'Unauthenticated request',
+                message: 'Unauthenticated request!',
             });
         }
 
@@ -143,7 +150,7 @@ export const refreshAuthToken = async (req: Request, res: Response) => {
 
         if (!refreshToken) {
             return res.status(401).send({
-                message: 'Unauthenticated request',
+                message: 'Unauthenticated request!',
             });
         }
 
@@ -155,7 +162,7 @@ export const refreshAuthToken = async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(401).send({
-            message: 'Unauthenticated request',
+            message: (error as Error).message,
         });
     }
 };
@@ -168,7 +175,7 @@ export const logoutUser = async (req: Request, res: Response) => {
         res.cookie('refresh_token', '', { maxAge: 0 });
 
         res.status(200).send({
-            message: 'Logout successful',
+            message: 'Logout successful!',
         });
     } catch (error) {
         console.error(error);
