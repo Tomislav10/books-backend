@@ -2,12 +2,18 @@ import {Request, Response} from 'express';
 import {getRepository} from 'typeorm';
 import {UserEntity} from '../entity/user.entity';
 import bcryptjs from 'bcryptjs'
-import {sign} from 'jsonwebtoken';
+import {sign, verify} from 'jsonwebtoken';
+
+interface JwtPayload {
+    id: number,
+    iat: number,
+    exp: number
+}
 
 export const Register = async (req: Request, res: Response) => {
-    const {first_name, last_name, email, password, password_confirm} = req.body;
+    const {first_name, last_name, email, password_confirm} = req.body;
 
-    if(password !== password_confirm) {
+    if(req.body.password !== password_confirm) {
         return res.status(400).send({
             message: 'Password!!!!! '
         })
@@ -15,14 +21,14 @@ export const Register = async (req: Request, res: Response) => {
 
 
 
-    const user = await getRepository(UserEntity).save({
+    const {password, ...data} = await getRepository(UserEntity).save({
         first_name,
         last_name,
         email,
         password: await bcryptjs.hash(password, 12),
     })
 
-    res.send(user);
+    res.send(data);
 }
 
 export const Login = async (req: Request, res: Response) => {
@@ -49,11 +55,11 @@ export const Login = async (req: Request, res: Response) => {
 
     const accessToken = sign({
         id: user.id
-    }, "access_secret", {expiresIn: '30s'});
+    }, process.env.ACCESS_SECRET || '', {expiresIn: '30s'});
 
     const refreshToken = sign({
         id: user.id
-    }, "refresh_secret", {expiresIn: '1w'});
+    }, process.env.REFRESH_SECRET || '', {expiresIn: '1w'});
 
     res.cookie('access_token', accessToken, {
         httpOnly: true,
@@ -69,4 +75,40 @@ export const Login = async (req: Request, res: Response) => {
         accessToken,
         refreshToken
     });
+}
+
+export const AuthenticatedUser = async (req: Request, res: Response) => {
+    try {
+        const cookie = req.cookies['access_token'];
+
+        const payload = verify(cookie, process.env.ACCESS_SECRET || '') as JwtPayload;
+
+        if(!payload){
+            return res.status(401).send({
+                message: 'Unauthenticated.a..sd.a.s.'
+            })
+        }
+
+        console.log(payload);
+
+        const user = await getRepository(UserEntity).findOne({
+            where: {
+                id: payload.id,
+            },
+        });
+
+        if(!user){
+            return res.status(401).send({
+                message: 'Unauthenticated.a..sd.a.s.'
+            })
+        }
+
+        const {password, ...data} = user;
+
+        res.send(data);
+    } catch (e) {
+        return res.status(401).send({
+            message: 'Unauthenticated.a..sd.a.s.'
+        })
+    }
 }
