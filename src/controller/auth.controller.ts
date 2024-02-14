@@ -25,7 +25,7 @@ export const Register = async (req: Request, res: Response) => {
         first_name,
         last_name,
         email,
-        password: await bcryptjs.hash(password, 12),
+        password: await bcryptjs.hash(req.body.password, 12),
     })
 
     res.send(data);
@@ -106,6 +106,38 @@ export const AuthenticatedUser = async (req: Request, res: Response) => {
         const {password, ...data} = user;
 
         res.send(data);
+    } catch (e) {
+        return res.status(401).send({
+            message: 'Unauthenticated.a..sd.a.s.'
+        })
+    }
+}
+
+export const Refresh = async (req: Request, res: Response) => {
+    try {
+        const cookie = req.cookies['refresh_token'];
+
+        const payload = verify(cookie, process.env.REFRESH_SECRET || '') as JwtPayload;
+
+        if(!payload){
+            return res.status(401).send({
+                message: 'Unauthenticated.a..sd.a.s.'
+            })
+        }
+
+        const accessToken = sign({
+            id: payload.id
+        }, process.env.ACCESS_SECRET || '', {expiresIn: '30s'});
+
+        res.cookie('access_token', accessToken, {
+            httpOnly: true,
+            maxAge: 24*60*60*1000 // 24h
+        });
+
+        res.send({
+            message: 'Success'
+        });
+
     } catch (e) {
         return res.status(401).send({
             message: 'Unauthenticated.a..sd.a.s.'
