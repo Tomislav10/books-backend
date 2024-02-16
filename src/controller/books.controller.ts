@@ -4,7 +4,6 @@ import {BookEntity} from '../entity/book.entity';
 
 export const addFavorites = async (req: Request, res: Response) => {
     try {
-        console.log(req.body);
         const {userId, url} = req.body;
 
         const user = await getRepository(BookEntity).findOne({
