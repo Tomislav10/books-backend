@@ -83,6 +83,7 @@ export const loginUser = async (req: Request, res: Response) => {
         const token = sign({ id: user.id }, process.env.ACCESS_SECRET || '', { expiresIn: '30s' });
 
         res.send({
+            userId: user.id,
             token,
         });
     } catch (error) {
